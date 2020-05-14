@@ -57,12 +57,12 @@ import (
 
 type infoStruct struct{// Для записи данных о чём то
     name string; // Имя
-	comment string; // Коментарий создателя
+    comment string; // Коментарий создателя
 }
 type vector3 struct{ // XYZ вектор
     x float32; // ось X
-	y float32; // ось Y
-	z float32; // ось Z
+    y float32; // ось Y
+    z float32; // ось Z
 }
 type colorStruct struct{ // RGB вектор
     r float32; // Канал цвета R
@@ -79,9 +79,14 @@ type posRotSizeColorDataStruct struct{
 	add_color colorStruct; // Добавочный цвет
 	add_type int; // тип используемого объекта
 }
+type typeIdVec2Struct struct{
+    types int;
+	id int;
+}
 
-
-
+func TyRealTime(i float32) float32{
+    return  i / 100. / 60.;
+}
 
 
 
@@ -106,11 +111,21 @@ type World struct{
 	mobs mobsStuct; // перечень всех существ (в том чисе игроков)
 	items itemsStruct; // перечень всех предметов
 	maps mapsStruct; // карта мира и постройки на ней, лес, все области, ...
+	
+	physics physicsStruct; // данные для физики и времени
+	time float32; // момент жизни (нынешний сдвиг)
 }
 
 
-
-
+func(w *World) FULL_GEN(side float64) {
+	fmt.Println( "World: " + " Генератор для '"+w.world.name+"' запущен.");
+} 
+func(w *World) timeUP(time float32) {
+	localTime := time + w.time;
+	fmt.Println( "World: " + " ход времени на:", localTime, ".");
+	w.physics.t += localTime;
+	w.time = 0;
+} 
 
 
 
@@ -134,7 +149,6 @@ type mobsStuct struct{
 	baf bafListStruct; // все бафы, что есть тут
 	
 	mob []mobInfoStruct; // узел сборки сущности
-		
 }
 
 type itemsStruct struct{ // ----- вместилище types/id
@@ -153,7 +167,9 @@ type mapsStruct struct{
 	zoneMaps zoneMapsListStruct; // все зоны, в виде точек с весом, вокруг которых распростроняется их вличние ( как воронойз ) (указываются зоны: города, местность монстров, заны погоды, леса, ....)
 }
 
-
+type physicsStruct struct{
+	t float32; // время в мире, с момента создания
+}
 
 
 
@@ -196,7 +212,7 @@ type mobInfoStruct struct{ // не моба, а сущности. это узе�
 	
 	gameType bool; // player/moba
 	
-	raceType int; // номер рассы сущности (В БЕСТИАРИЕ)
+	getRace typeIdVec2Struct; // в списке расс сущностей  
 	id int; // номер сущности в списке этой рассы ( там все данный )
 	status []string; // перечень всех заметок о состоянии этой сущности
 
@@ -263,10 +279,7 @@ type inventListStruct struct{ //пока мобы не прописаны, ин�
 }
 
 type bafListStructl struct{
-    baftype []int; // тип
-	bafid []int; // номер в списке по типу
-	
-	// -какого то бафа ( баф/дебаф ... )
+    getBafType []typeIdVec2Struct; // ссылки на бафы
 }
 
 
@@ -335,10 +348,9 @@ type descriptionStruct struct{
 
 
 type itemStruct struct{
-    mainNameItemType string; // Имя предмета (может быть изменено)
-	lastNameItem string; // Оригинальное имя (скрыто)
-	types int; // Номер массива, в котором искать данные о элементе (пример: 0-оружия, 1-еда, 2-доспехи, ....)
-	id int; // Номер этого предмета в массиве (ссылка на его данные в мировом реестре)
+    mainNameItemType string; // Имя предмета (может быть изменено)Оригинальное имя (скрыто)
+	lastNameItem string; // Имя предмета (может быть изменено)
+	getTypes typeIdVec2Struct; // ссылка на предмет вы списке и типе
 }
 
 
@@ -376,6 +388,17 @@ type foodItemStruct struct{
 
 func main(){
     var TheHighestWorld World;
+	TheHighestWorld.world.name = "world of sword and magic in the name of a generator"
+	
 	fmt.Println(TheHighestWorld);
+	
+	side := 5.2652;
+	TheHighestWorld.FULL_GEN(side);
+	
+	for(false){
+		TheHighestWorld.timeUP(1);
+		fmt.Print(TyRealTime(TheHighestWorld.physics.t)); // время в мире, в секундах
+	}
+	TheHighestWorld.timeUP(1);
 }
 
